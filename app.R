@@ -73,6 +73,7 @@ ui <- fluidPage(
                            ),
                   # панель результата ----
                   tabPanel(value = 'res', title = "Результат", 
+                           downloadButton('download',"Скачать таблицу"),
                            dataTableOutput("table"))
       )
       
@@ -388,7 +389,14 @@ server <- function(input, output, session) {
                                             language = list(url = "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Russian.json"))
                              )
   })
-  
+  # Файл для скачивания ----
+  output$download <- downloadHandler(
+    filename = function(){"mdcalib_output.csv"}, 
+    content = function(fname){
+      write.csv2(clean_sim2(), 
+                fname, quote = F, row.names = F, na = '-32968')
+    }
+  )
 }
 
 # Create Shiny app ----
