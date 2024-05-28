@@ -4,7 +4,7 @@ library(tidyverse)
 library(hydroGOF)
 
 setwd('c:/Users/morey/Documents/R/mdcalib/')
-df <- read.csv('Hdrs_Bureya_fin.csv', 
+df <- read.csv('Hdrs.csv', 
                check.names = F, stringsAsFactors = F, na.strings = '-99.000')
 df <- df %>%
   mutate(Date = as.Date(strptime(as.character(Date), format = '%Y%m%d'))) %>%
@@ -23,17 +23,17 @@ df <- df %>%
 #   summarise(nse_home(obs = `6473_Qm`, sim = `6473_Qs`))
 
 nse_df <- df %>%
-  filter(year(Date) > 1966 & year(Date) <= 2004) %>%
+  # filter(year(Date) > 1966 & year(Date) <= 2004) %>%
     pivot_wider(id_cols = c(Date, post), 
                 names_from = calc, values_from = val) %>%
     group_by(post) %>%
-    summarise(nse = NSE(m, s), 
+    summarise(nse = NSE(obs = m, sim = s), 
               rmse = rmse(m, s),
               r2 = cor(m, s, use = 'complete.obs') ^ 2 ) %>%
     mutate(calc = 'm')
 
 count_df <- df %>%
-  filter(year(Date) > 1966 & year(Date) <= 2004) %>%
+  # filter(year(Date) > 1966 & year(Date) <= 2004) %>%
     group_by(post, calc) %>% 
     filter(!is.na(val)) %>%
     summarise(N = n(),

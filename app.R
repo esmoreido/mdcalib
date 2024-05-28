@@ -125,7 +125,7 @@ server <- function(input, output, session) {
   output$plot1 <- renderPlot({
     req(input$file1)
     input_df() %>%
-      filter(year(Date) > input$ymin & year(Date) <= input$ymax) %>%
+      filter(year(Date) >= input$ymin & year(Date) <= input$ymax) %>%
       ggplot(aes(x=Date, y = val, col = calc)) + 
       geom_line() + 
       facet_wrap(post~., ncol = 1, scales = 'free_y', 
@@ -136,13 +136,13 @@ server <- function(input, output, session) {
   nse_df <- reactive({
     req(input$file1)
     df <- input_df() %>%
-      filter(year(Date) > input$ymin & year(Date) <= input$ymax) %>%
+      filter(year(Date) >= input$ymin & year(Date) <= input$ymax) %>%
       pivot_wider(id_cols = c(Date, post), 
                   names_from = calc, values_from = val) %>%
       group_by(post) %>%
-      summarise(nse = NSE(m, s), 
-                rmse = rmse(m, s),
-                r2 = cor(m, s, use = 'complete.obs') ^ 2) %>%
+      summarise(nse = NSE(obs = m, sim = s), 
+                rmse = rmse(obs = m, sim = s),
+                r2 = cor(x = m, y = s, use = 'complete.obs') ^ 2) %>%
       mutate(calc = 'm')
     return(df)
   })
@@ -151,7 +151,7 @@ server <- function(input, output, session) {
   count_df <- reactive({
     # req(input$file1)
     df <- input_df() %>%
-      filter(year(Date) > input$ymin & year(Date) <= input$ymax) %>%
+      filter(year(Date) >= input$ymin & year(Date) <= input$ymax) %>%
       group_by(post, calc) %>% 
       filter(!is.na(val)) %>%
       summarise(N = n(),
@@ -186,8 +186,8 @@ server <- function(input, output, session) {
   
   output$nseWeight <- renderText(
     return(case_when(nsew() > 0.8 ~ paste('<div style=\"background-color:green\">', round(nsew(), 3),"</div>"),
-                     nsew() < 0.8 ~ paste('<div style=\"background-color:yellow\">', round(nsew(), 3),"</div>"),
-                     nsew() < 0.5 ~ paste('<div style=\"background-color:red\">', round(nsew(), 3),"</div>"),
+                     nsew() <= 0.8 ~ paste('<div style=\"background-color:yellow\">', round(nsew(), 3),"</div>"),
+                     nsew() <= 0.5 ~ paste('<div style=\"background-color:red\">', round(nsew(), 3),"</div>"),
                      .default ="<div style=\"background-color:red\">Выберите хотя бы одну запись!</div>")
     ))
   
@@ -196,7 +196,7 @@ server <- function(input, output, session) {
   # плотная матрица ----
   calib_df <- reactive({
     df <- input_df() %>%
-      filter(year(Date) > input$ymin & year(Date) <= input$ymax & post %in% unlist(count_df()[input$contents_rows_selected,]$post)) %>%
+      filter(year(Date) >= input$ymin & year(Date) <= input$ymax & post %in% unlist(count_df()[input$contents_rows_selected,]$post)) %>%
       pivot_wider(id_cols = 'Date', names_from = c('post', 'calc'),  values_from = 'val') %>%
       na.exclude()
   })
@@ -210,8 +210,8 @@ server <- function(input, output, session) {
       pivot_wider(id_cols = c(Date, post), 
                   names_from = calc, values_from = val) %>%
       group_by(post) %>%
-      summarise(nse = NSE(m, s), 
-                rmse = rmse(m, s),
+      summarise(nse = NSE(obs = m, sim = s), 
+                rmse = rmse(obs = m, sim = s),
                 r2 = cor(m, s, use = 'complete.obs') ^ 2 ) %>%
       mutate(calc = 'm')  
     })
@@ -322,9 +322,9 @@ server <- function(input, output, session) {
     pivot_wider(id_cols = c(Date, post), 
                 names_from = calc, values_from = val) %>%
     group_by(post) %>%
-    summarise(nse = NSE(m, s), 
-              rmse = rmse(m, s),
-              r2 = cor(m, s, use = 'complete.obs') ^ 2 ) %>%
+    summarise(nse = NSE(obs = m, sim = s), 
+              rmse = rmse(obs = m, sim = s),
+              r2 = cor(x = m, y = s, use = 'complete.obs') ^ 2 ) %>%
     mutate(calc = 'm')
     return(df)
   })
@@ -371,16 +371,16 @@ server <- function(input, output, session) {
                                    rownames = T, digits = 3)
     output$nsePC <- renderText(
       return(case_when(nsePC() > 0.8 ~ paste('<div style=\"background-color:green\">', round(nsePC(), 3),"</div>"),
-                       nsePC() < 0.8 ~ paste('<div style=\"background-color:yellow\">', round(nsePC(), 3),"</div>"),
-                       nsePC() < 0.5 ~ paste('<div style=\"background-color:red\">', round(nsePC(), 3),"</div>"),
+                       nsePC() <= 0.8 ~ paste('<div style=\"background-color:yellow\">', round(nsePC(), 3),"</div>"),
+                       nsePC() <= 0.5 ~ paste('<div style=\"background-color:red\">', round(nsePC(), 3),"</div>"),
                        .default ="<div style=\"background-color:red\">Выберите хотя бы одну запись!</div>")
       ))
     
     output$umatrix <- renderTable(head(clean_df()))
     output$nseClean <- renderText(
       return(case_when(nsew_clean() > 0.8 ~ paste('<div style=\"background-color:green\">', round(nsew_clean(), 3),"</div>"),
-                       nsew_clean() < 0.8 ~ paste('<div style=\"background-color:yellow\">', round(nsew_clean(), 3),"</div>"),
-                       nsew_clean() < 0.5 ~ paste('<div style=\"background-color:red\">', round(nsew_clean(), 3),"</div>"),
+                       nsew_clean() <= 0.8 ~ paste('<div style=\"background-color:yellow\">', round(nsew_clean(), 3),"</div>"),
+                       nsew_clean() <= 0.5 ~ paste('<div style=\"background-color:red\">', round(nsew_clean(), 3),"</div>"),
                        .default ="<div style=\"background-color:red\">Выберите хотя бы одну запись!</div>")
       ))
     output$table <- renderDT(clean_sim2(), 
