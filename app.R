@@ -383,9 +383,9 @@ server <- function(input, output, session) {
                        nsew_clean() <= 0.5 ~ paste('<div style=\"background-color:red\">', round(nsew_clean(), 3),"</div>"),
                        .default ="<div style=\"background-color:red\">Выберите хотя бы одну запись!</div>")
       ))
-    output$table <- renderDT(clean_sim2(), 
+    output$table <- renderDT(clean_sim2() %>% mutate_if(is.numeric, ~round(., 3)),
                              # colnames = c('Индекс поста', 'Ряд*', 'Длина', 'Среднее', 'Дисперсия', 'NSE', 'RMSE', 'R2'),
-                             options = list(pageLength = 100, 
+                             options = list(pageLength = 100,  
                                             language = list(url = "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Russian.json"))
                              )
   })
