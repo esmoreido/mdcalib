@@ -185,9 +185,9 @@ server <- function(input, output, session) {
   })
   
   output$nseWeight <- renderText(
-    return(case_when(nsew() > 0.8 ~ paste('<div style=\"background-color:green\">', round(nsew(), 3),"</div>"),
-                     nsew() <= 0.8 ~ paste('<div style=\"background-color:yellow\">', round(nsew(), 3),"</div>"),
-                     nsew() <= 0.5 ~ paste('<div style=\"background-color:red\">', round(nsew(), 3),"</div>"),
+    return(case_when(nsew() > 0.8 ~ paste('<div style=\"background-color:green\">', round(nsew(), 4),"</div>"),
+                     nsew() <= 0.8 ~ paste('<div style=\"background-color:yellow\">', round(nsew(), 4),"</div>"),
+                     nsew() <= 0.5 ~ paste('<div style=\"background-color:red\">', round(nsew(), 4),"</div>"),
                      .default ="<div style=\"background-color:red\">Выберите хотя бы одну запись!</div>")
     ))
   
