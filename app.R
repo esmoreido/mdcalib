@@ -142,7 +142,7 @@ server <- function(input, output, session) {
       group_by(post) %>%
       summarise(nse = NSE(obs = m, sim = s), 
                 rmse = rmse(obs = m, sim = s),
-                r2 = cor(x = m, y = s, use = 'complete.obs') ^ 2) %>%
+                r2 = cor(x = m, y = s, use = 'pairwise.complete.obs') ^ 2) %>%
       mutate(calc = 'm')
     return(df)
   })
@@ -229,7 +229,7 @@ server <- function(input, output, session) {
                 var = var(val, na.rm = T)) %>%
       left_join(dense_nse_df(), by = c('post', 'calc')) %>%
       arrange(calc, var) %>%
-      mutate_if(is.numeric, ~round(., 3))
+      mutate_if(is.numeric, ~round(., 4))
     
   })
   
