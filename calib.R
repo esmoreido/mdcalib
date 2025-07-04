@@ -174,3 +174,48 @@ nsew_clean <- count_clean %>%
   summarise(nse = sum(nse * var, na.rm = T) / 
               sum(var, na.rm = T)) %>%
   pull(nse)
+
+
+# режимный NSE ----
+df <- df %>%
+  select(c(Date, contains('5115')))
+writexl::write_xlsx(df, '5115.xlsx')
+df %>%
+  ggplot(aes(x=Date)) +
+  geom_line(aes(y=`5115_Qm`, col='M')) + 
+  geom_line(aes(y=`5115_Qs`, col='S')) +
+  facet_wrap(year(Date)~., scales = 'free_x')
+
+df <- df %>%
+  group_by(yday = yday(Date)) %>%
+  mutate(qreg = mean(`5115_Qm`, na.rm = T)) %>%
+  ungroup()
+
+df %>%
+  ggplot(aes(x=yday)) +
+  geom_line(aes(y=`5115_Qm`, col='M')) + 
+  geom_line(aes(y=`5115_Qs`, col='S')) +
+  geom_line(aes(y=`qreg`, col='R')) +
+  facet_wrap(year(Date)~., scales = 'free_x')
+
+df <- df %>%
+  select(Date, `5115_Qm`, `5115_Qs`, qreg) %>%
+  group_by(year = year(Date)) %>%
+  arrange(desc(`5115_Qm`), desc(`5115_Qs`), desc(qreg), .by_group=T) %>%
+  mutate(n = row_number(),
+         p = n / (n() + 1))
+
+df %>%
+  ggplot(aes(x=p)) +
+  geom_line(aes(y=`5115_Qm`, col='M')) + 
+  geom_line(aes(y=`5115_Qs`, col='S')) +
+  geom_line(aes(y=qreg, col='R')) +
+  facet_wrap(year(Date)~., scales = 'free')
+  
+nse <- df %>%
+  group_by(year) %>%
+  summarise(enum = mean((`5115_Qs` - `5115_Qm`) ^ 2),
+            delim = mean((qreg - `5115_Qm`) ^ 2), 
+            nse = NSE(obs = `5115_Qm`, sim = `5115_Qs`),
+            nse_r = 1 - (enum / delim))
+
