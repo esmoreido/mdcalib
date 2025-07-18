@@ -142,7 +142,9 @@ server <- function(input, output, session) {
       group_by(post) %>%
       summarise(nse = NSE(obs = m, sim = s), 
                 rmse = rmse(obs = m, sim = s),
-                r2 = cor(x = m, y = s, use = 'pairwise.complete.obs') ^ 2) %>%
+                r2 = cor(x = m, y = s, use = 'pairwise.complete.obs') ^ 2,
+                ftest = var.test(m, s)$p.value,
+                ttest = t.test(m, s)$p.value) %>%
       mutate(calc = 'm')
     return(df)
   })
@@ -212,7 +214,9 @@ server <- function(input, output, session) {
       group_by(post) %>%
       summarise(nse = NSE(obs = m, sim = s), 
                 rmse = rmse(obs = m, sim = s),
-                r2 = cor(m, s, use = 'complete.obs') ^ 2 ) %>%
+                r2 = cor(m, s, use = 'complete.obs') ^ 2,
+                Pvalue1 = var.test(m, s)$p.value,
+                Pvalue2 = t.test(m, s)$p.value) %>%
       mutate(calc = 'm')  
     })
   

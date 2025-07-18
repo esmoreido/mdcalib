@@ -179,31 +179,41 @@ nsew_clean <- count_clean %>%
 # режимный NSE ----
 df <- df %>%
   select(c(Date, contains('5115')))
+df <- df %>%
+  rename('qfact' = '5115_Qm', 'qmod' = '5115_Qs')
+
 writexl::write_xlsx(df, '5115.xlsx')
 df %>%
   ggplot(aes(x=Date)) +
-  geom_line(aes(y=`5115_Qm`, col='M')) + 
-  geom_line(aes(y=`5115_Qs`, col='S')) +
+  geom_line(aes(y=qfact, col='M')) + 
+  geom_line(aes(y=qmod, col='S')) +
   facet_wrap(year(Date)~., scales = 'free_x')
 
 df <- df %>%
   group_by(yday = yday(Date)) %>%
-  mutate(qreg = mean(`5115_Qm`, na.rm = T)) %>%
+  mutate(qreg = mean(qfact, na.rm = T)) %>%
   ungroup()
 
 df %>%
   ggplot(aes(x=yday)) +
-  geom_line(aes(y=`5115_Qm`, col='M')) + 
-  geom_line(aes(y=`5115_Qs`, col='S')) +
-  geom_line(aes(y=`qreg`, col='R')) +
+  geom_line(aes(y=qfact, col='M')) + 
+  geom_line(aes(y=qmod, col='S')) +
+  geom_line(aes(y=qreg, col='R')) +
   facet_wrap(year(Date)~., scales = 'free_x')
 
-df <- df %>%
-  select(Date, `5115_Qm`, `5115_Qs`, qreg) %>%
-  group_by(year = year(Date)) %>%
-  arrange(desc(`5115_Qm`), desc(`5115_Qs`), desc(qreg), .by_group=T) %>%
+df1 <- df %>%
+  mutate(year = year(Date)) %>%
+  filter(year == 2008)
+
+df2 <- df1 %>%
+  arrange(desc(qfact), desc(qmod), .by_group=T)
+
+df %>%
   mutate(n = row_number(),
          p = n / (n() + 1))
+
+df1 <- apply(df, 2, sort, na.last = TRUE)
+
 
 df %>%
   ggplot(aes(x=p)) +
