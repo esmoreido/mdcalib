@@ -5,13 +5,13 @@ FROM rocker/shiny-verse
 RUN mkdir /home/shiny-app
 
 # Install R dependencies
-RUN R -e "install.packages(c('ggplot2',  'dplyr', 'shinyjs', 'bslib', 'shinyWidgets', 'dygraphs', 'htmltools', 'DT'))"
+RUN R -e "install.packages(c('ggplot2',  'dplyr', 'shinyjs', 'bslib', 'hydroGOF', 'shinyWidgets', 'dygraphs', 'htmltools', 'DT'))"
 
 # Copy the Shiny app code
-COPY . /home/shiny-app/
+COPY . /home/shiny-app/mdcalib
 
 # Expose the application port
 EXPOSE 8188
 
 # Run the R Shiny app
-CMD ["R", "-e", "shiny::runApp('/home/shiny-app', host='0.0.0.0', port=8188)"]
+CMD ["R", "-e", "shiny::runApp('/home/shiny-app/mdcalib', host='0.0.0.0', port=8188)"]
